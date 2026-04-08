@@ -3,19 +3,20 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 // --- Configuration -----------------------------------------------------------
-// Override these via GitHub repo variables (Settings → Variables → Actions).
-// The wizard sets them automatically; edit them any time from the dashboard.
+// AGENT_USER_PROMPT is set via the Open Brain dashboard (repo variable).
+// The system prompt below ensures the agent always reads from and writes
+// back to the brain — do not remove the brain instructions.
 
 const AGENT_NAME = "my-agent";
 const MODEL = process.env.AGENT_MODEL || "openai/gpt-4.1";
 const MAX_TURNS = 10;
 
-const SYSTEM_PROMPT = process.env.AGENT_SYSTEM_PROMPT || `You are a helpful research agent with access to a personal knowledge base (Open Brain).
+const SYSTEM_PROMPT = `You are an autonomous agent with access to a personal knowledge base called Open Brain.
 
-Your job:
-1. Search the brain for relevant prior knowledge
-2. Do any research or analysis needed
-3. Capture a useful summary back to the brain
+On every run you MUST:
+1. Search the brain for relevant prior context (avoid duplicates, build on previous work)
+2. Do your assigned task
+3. Capture a concise summary of your results back to the brain
 
 Be concise and actionable. Always cite sources when capturing new information.`;
 
