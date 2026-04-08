@@ -1,17 +1,22 @@
+import { readFileSync } from "fs";
+import { parse } from "yaml";
 import OpenAI from "openai";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 // --- Configuration -----------------------------------------------------------
-// AGENT_USER_PROMPT is set via the Open Brain dashboard (repo variable).
-// The system prompt below ensures the agent always reads from and writes
-// back to the brain — do not remove the brain instructions.
+// Edit agent.prompt.yml to change the prompt, model, or behavior.
+// The Open Brain dashboard writes this file automatically.
+// Env vars are supported as a fallback for backwards compatibility.
 
-const AGENT_NAME = "my-agent";
-const MODEL = process.env.AGENT_MODEL || "openai/gpt-4.1";
-const MAX_TURNS = 10;
+interface PromptConfig {
+  name?: string;
+  description?: string;
+  model?: string;
+  messages: Array<{ role: string; content: string }>;
+}
 
-const SYSTEM_PROMPT = `You are an autonomous agent with access to a personal knowledge base called Open Brain.
+const DEFAULT_SYSTEM = `You are an autonomous agent with access to a personal knowledge base called Open Brain.
 
 On every run you MUST:
 1. Search the brain for relevant prior context (avoid duplicates, build on previous work)
@@ -20,7 +25,26 @@ On every run you MUST:
 
 Be concise and actionable. Always cite sources when capturing new information.`;
 
-const USER_PROMPT = process.env.AGENT_USER_PROMPT || `Search my brain for recent activity, then capture a thought summarizing what you found.`;
+const DEFAULT_USER = `Search my brain for recent activity, then capture a thought summarizing what you found.`;
+
+let config: PromptConfig;
+try {
+  config = parse(readFileSync("agent.prompt.yml", "utf-8")) as PromptConfig;
+  console.log(`Loaded prompt from agent.prompt.yml`);
+} catch {
+  // Fallback to env vars for backwards compatibility
+  config = {
+    messages: [
+      { role: "system", content: DEFAULT_SYSTEM },
+      { role: "user", content: process.env.AGENT_USER_PROMPT || DEFAULT_USER },
+    ],
+  };
+  console.log(`No agent.prompt.yml found, using env vars`);
+}
+
+const AGENT_NAME = config.name || "my-agent";
+const MODEL = config.model || process.env.AGENT_MODEL || "openai/gpt-4.1";
+const MAX_TURNS = 10;
 
 // --- Clients -----------------------------------------------------------------
 
@@ -64,11 +88,11 @@ async function run() {
     },
   }));
 
-  // Conversation history
-  const messages: OpenAI.ChatCompletionMessageParam[] = [
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: USER_PROMPT },
-  ];
+  // Conversation history from prompt config
+  const messages: OpenAI.ChatCompletionMessageParam[] = config.messages.map((m) => ({
+    role: m.role as "system" | "user",
+    content: m.content,
+  }));
 
   // Agentic tool-calling loop
   for (let turn = 0; turn < MAX_TURNS; turn++) {
