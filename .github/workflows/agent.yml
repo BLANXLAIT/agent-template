@@ -1,0 +1,28 @@
+name: Agent
+
+on:
+  schedule:
+    - cron: "30 11 * * *" # 6:30am EST daily — adjust to your preference
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  models: read # Required for GitHub Models API
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - run: npm ci
+
+      - run: npm run agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPEN_BRAIN_URL: ${{ secrets.OPEN_BRAIN_URL }}
+          OPEN_BRAIN_KEY: ${{ secrets.OPEN_BRAIN_KEY }}
