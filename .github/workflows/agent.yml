@@ -2,12 +2,12 @@ name: Agent
 
 on:
   schedule:
-    - cron: "30 11 * * *" # 6:30am EST daily — adjust to your preference
+    - cron: "30 11 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
-  models: read # Required for GitHub Models API
+  models: read
 
 jobs:
   run:
@@ -26,3 +26,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPEN_BRAIN_URL: ${{ secrets.OPEN_BRAIN_URL }}
           OPEN_BRAIN_KEY: ${{ secrets.OPEN_BRAIN_KEY }}
+          AGENT_SYSTEM_PROMPT: ${{ vars.AGENT_SYSTEM_PROMPT }}
+          AGENT_USER_PROMPT: ${{ vars.AGENT_USER_PROMPT }}
+          AGENT_MODEL: ${{ vars.AGENT_MODEL }}
