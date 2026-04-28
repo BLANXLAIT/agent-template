@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/blanxlait-agent-template-badge.png)](https://mseep.ai/app/blanxlait-agent-template)
+
 # Agent Template
 
 A ready-to-fork template for building autonomous AI agents that connect to [Open Brain](https://brain.blanxlait.ai) — your personal knowledge base.
